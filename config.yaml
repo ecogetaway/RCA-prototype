@@ -1,0 +1,36 @@
+listen_address: "0.0.0.0:8080"
+url_base_path: "/"
+data_dir: "/app/data"
+
+# Disable features not needed for API-only deployment
+do_not_check_for_deployments: true
+do_not_check_for_updates: true
+disable_usage_statistics: true
+
+# Authentication settings
+auth:
+  anonymous_role: "admin"
+  bootstrap_admin_password: "admin"
+
+# Cache settings
+cache:
+  ttl: 30d
+  gc_interval: 10m
+
+# Traces, logs, and profiles settings
+traces:
+  ttl: 7d
+logs:
+  ttl: 7d
+profiles:
+  ttl: 7d
+
+# Disable GRPC for simpler deployment
+grpc:
+  disabled: true
+
+# ClickHouse space manager settings
+clickhouse_space_manager:
+  enabled: true
+  usage_threshold_percent: 70
+  min_partitions: 1
