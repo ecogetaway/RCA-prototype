@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RCA Prototype for MSPs</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .card { border: 1px solid #ccc; padding: 20px; border-radius: 8px; }
+        .alert { background-color: #ffe6e6; border-color: #ff0000; }
+    </style>
+</head>
+<body>
+    <h1>RCA Prototype Dashboard</h1>
+    <div class="dashboard">
+        <div class="card">
+            <h2>Asset Monitoring</h2>
+            <p>Service Map: [Simulated with Strands Agents]</p>
+            <p>Health: 95% OK (Agent-enriched insights)</p>
+        </div>
+        <div class="card alert">
+            <h2>Alerts (Bedrock AgentCore + Keep)</h2>
+            <p>High CPU on server-1 (Correlated by Bedrock AgentCore)</p>
+            <p>Memory leak detected (Enriched via Keep integration)</p>
+        </div>
+        <div class="card">
+            <h2>AI RCA (Strands Agents + Bedrock AgentCore)</h2>
+            <p>Incident: App slowdown</p>
+            <p>Root Cause: Database bottleneck (Agent-driven prediction)</p>
+            <p>Enriched by: Keep alerts correlation, Strands insights, Bedrock orchestration</p>
+        </div>
+        <div class="card">
+            <h2>Reports</h2>
+            <p>Generate RCA Report</p>
+            <button>Export</button>
+        </div>
+    </div>
+    <script>
+        // Simulate real-time updates
+        setInterval(() => {
+            console.log('Updating dashboard...');
+        }, 5000);
+    </script>
+</body>
+</html>
