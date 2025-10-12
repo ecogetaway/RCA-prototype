@@ -8,18 +8,18 @@ docs/
 *.md
 
 # Frontend (not needed for API-only deployment)
-coroot/front/
-coroot/static/
+front/
+static/
 
 # Development files
-coroot/dev.dockerfile
-coroot/Makefile
+dev.dockerfile
+Makefile
 .vscode/
 .idea/
 
 # Test files
-coroot/*_test.go
-coroot/test/
+*_test.go
+test/
 
 # Build artifacts
 dist/
@@ -38,6 +38,3 @@ node_modules/
 # Temporary files
 *.tmp
 *.temp
-
-# AWS CLI package
-AWSCLIV2.pkg
