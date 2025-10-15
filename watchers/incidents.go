@@ -130,7 +130,7 @@ func (w *Incidents) Check(project *db.Project, world *model.World) {
 		if needNotify {
 			w.notifier.Enqueue(project, app, incident, now)
 			if w.keepClient != nil {
-				alert := keep.Alert{
+                alert := keep.Alert{
 					ID:          incident.Key,
 					Name:        fmt.Sprintf("Incident for %s", app.Id.Name),
 					Description: fmt.Sprintf("Incident detected for application %s", app.Id.Name),
@@ -145,7 +145,8 @@ func (w *Incidents) Check(project *db.Project, world *model.World) {
 				}
 				if incident.Resolved() {
 					alert.Status = "resolved"
-					alert.EndsAt = &incident.ResolvedAt.ToTime()
+                    ends := incident.ResolvedAt.ToTime()
+                    alert.EndsAt = &ends
 				}
 				go func() {
 					if err := w.keepClient.SendAlert(alert); err != nil {
