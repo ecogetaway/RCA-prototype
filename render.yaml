@@ -6,7 +6,7 @@ services:
     dockerContext: .
     plan: starter
     region: oregon
-    branch: main
+    branch: master
     healthCheckPath: /health
     envVars:
       - key: LISTEN_ADDRESS
