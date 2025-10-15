@@ -27,6 +27,7 @@ type RCA struct {
 	DetailedRootCause string          `json:"detailed_root_cause_analysis"`
 	PropagationMap    *PropagationMap `json:"propagation_map"`
 	Widgets           []*Widget       `json:"widgets"`
+    Insights          []string        `json:"insights,omitempty"`
 }
 
 type PropagationMap struct {

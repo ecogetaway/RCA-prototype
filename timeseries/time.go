@@ -140,6 +140,12 @@ func (t Time) ToStandard() time.Time {
 	return time.Unix(int64(t), 0).UTC()
 }
 
+// ToTime is a compatibility alias for ToStandard, returning time.Time.
+// Some packages expect a ToTime() method on timeseries.Time.
+func (t Time) ToTime() time.Time {
+    return t.ToStandard()
+}
+
 func (t Time) String() string {
 	return strconv.FormatInt(int64(t), 10)
 }
