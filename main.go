@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"path"
+	"strings"
 	"syscall"
 
 	"github.com/coroot/coroot/api"
@@ -149,7 +150,42 @@ func main() {
 
 	statsCollector := stats.NewCollector(cfg.DisableUsageStatistics, instanceUuid, version, Edition, database, promCache, pricing, globalClickhouse)
 
-	router := mux.NewRouter()
+    router := mux.NewRouter()
+    // CORS middleware allowing Netlify and GitHub Pages (configurable via CORS_ALLOWED_ORIGINS)
+    allowedOrigins := map[string]bool{}
+    if origins := os.Getenv("CORS_ALLOWED_ORIGINS"); origins != "" {
+        // comma-separated list
+        for _, o := range strings.Split(origins, ",") {
+            o = strings.TrimSpace(o)
+            if o != "" {
+                allowedOrigins[o] = true
+            }
+        }
+    } else {
+        // sensible defaults; replace with actual domains after provisioning
+        allowedOrigins["https://<netlify-site>.netlify.app"] = true
+        allowedOrigins["https://<github-username>.github.io/<repo>"] = true
+        allowedOrigins["http://localhost:5173"] = true
+        allowedOrigins["http://localhost:3000"] = true
+    }
+    router.Use(func(next http.Handler) http.Handler {
+        return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+            origin := r.Header.Get("Origin")
+            // Allow specific known origins; broaden while URLs are unknown
+            if origin != "" && allowedOrigins[origin] {
+                w.Header().Set("Access-Control-Allow-Origin", origin)
+                w.Header().Set("Vary", "Origin")
+            }
+            w.Header().Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+            w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+            w.Header().Set("Access-Control-Allow-Credentials", "true")
+            if r.Method == http.MethodOptions {
+                w.WriteHeader(http.StatusNoContent)
+                return
+            }
+            next.ServeHTTP(w, r)
+        })
+    })
 	router.Use(statsCollector.MiddleWare)
 	router.PathPrefix("/debug/pprof/").Handler(http.DefaultServeMux)
 	router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {}).Methods(http.MethodGet)
@@ -231,8 +267,12 @@ func main() {
 		klog.Exitln("grpc server:", err)
 	}
 
-	klog.Infoln("listening on", cfg.ListenAddress)
-	klog.Fatalln(http.ListenAndServe(cfg.ListenAddress, router))
+    // Honor PORT env var if provided by platform (Render)
+    if port := os.Getenv("PORT"); port != "" {
+        cfg.ListenAddress = ":" + port
+    }
+    klog.Infoln("listening on", cfg.ListenAddress)
+    klog.Fatalln(http.ListenAndServe(cfg.ListenAddress, router))
 }
 
 // func readIndexHtml(basePath, version, instanceUuid string, checkForUpdates bool, developerMode bool) []byte {

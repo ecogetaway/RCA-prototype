@@ -1,0 +1,46 @@
+name: Deploy Frontend to GitHub Pages
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'coroot/front/**'
+
+permissions:
+  contents: write
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: coroot/front
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          VUE_APP_API_BASE_URL: ${{ secrets.FRONTEND_API_BASE_URL }}
+
+      - name: Add SPA fallback for GitHub Pages
+        run: cp dist/index.html dist/404.html
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: coroot/front/dist
+

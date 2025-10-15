@@ -1,10 +1,11 @@
-# Use Go 1.23 as base image
-FROM golang:1.23-alpine AS builder
+# Builder stage: Debian-based for CGO (SQLite/LZ4)
+FROM golang:1.23-bookworm AS builder
 
-# Install necessary build dependencies including CGO requirements
-RUN apk add --no-cache git ca-certificates tzdata gcc musl-dev sqlite-dev lz4-dev
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      build-essential sqlite3 libsqlite3-dev liblz4-dev tzdata ca-certificates git && \
+    rm -rf /var/lib/apt/lists/*
 
-# Set working directory
 WORKDIR /app
 
 # Copy go mod and sum files
@@ -16,19 +17,18 @@ RUN go mod download
 # Copy source code
 COPY . .
 
-# Build the application with CGO enabled for SQLite
+# Build with CGO enabled
 RUN CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo -o rca-backend .
 
-# Final stage
-FROM alpine:latest
+# Final stage: slim Debian runtime
+FROM debian:bookworm-slim
 
-# Install ca-certificates and SQLite for CGO-compiled binary
-RUN apk --no-cache add ca-certificates tzdata sqlite
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      ca-certificates tzdata sqlite3 liblz4-1 wget && \
+    rm -rf /var/lib/apt/lists/* && \
+    useradd -m -s /bin/bash appuser
 
-# Create non-root user
-RUN adduser -D -s /bin/sh appuser
-
-# Set working directory
 WORKDIR /app
 
 # Copy the binary and config from builder stage
@@ -36,18 +36,15 @@ COPY --from=builder /app/rca-backend .
 COPY --from=builder /app/config.yaml .
 
 # Create data directory
-RUN mkdir -p /app/data
-
-# Change ownership to non-root user
-RUN chown -R appuser:appuser /app
+RUN mkdir -p /app/data && chown -R appuser:appuser /app
 USER appuser
 
-# Expose port (Render will set PORT environment variable)
+# Expose port (Render will set PORT)
 EXPOSE 8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT:-8080}/health || exit 1
 
-# Run the application with config file
+# Run the application (PORT override handled in app)
 CMD ["./rca-backend", "--config", "config.yaml"]
